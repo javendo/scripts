@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/bin/x11vnc -forever -xkb -loop -noxdamage -repeat -shared -rfbport 5900 -ncache 10 > /dev/null 2>&1 &

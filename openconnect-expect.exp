@@ -1,0 +1,22 @@
+#!/usr/bin/expect
+
+set timeout 2
+set USER [lindex $argv 0]
+set PINANDTOKEN [lindex $argv 1]
+set REGION [lindex $argv 2]
+spawn -noecho openconnect --juniper ara-${REGION}1.avaya.com/mfa-employee
+expect {
+   "\r" {
+      exp_continue
+   }
+}
+send -- "MFA Default VPN Domain"
+expect -exact "MFA Default VPN Domain"
+send -- "\r"
+expect -exact "\r
+username:"
+send -- "${USER}\r"
+expect -exact "abadin\r
+password:"
+send -- "${PINANDTOKEN}\r"
+interact;

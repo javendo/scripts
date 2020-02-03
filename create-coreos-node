@@ -1,0 +1,22 @@
+#!/bin/bash
+
+DISCOVERY=`wget -qO- https://discovery.etcd.io/new?size=3`
+SSH_AUTHORIZED_KEY=`cat ~/.ssh/id_rsa.pub`
+HOME_DIR=/home/javendo
+
+rm -rf $HOME_DIR/snapshots/coreos/user_data-$1
+rm -rf $HOME_DIR/snapshots/coreos/config-drive-$1.iso
+
+sed -e 's/$private_ipv4/'$2'/g' -e 's/$ssh_authorized_key/'"${SSH_AUTHORIZED_KEY//\//\\/}"'/g' -e 's/$discovery/'${DISCOVERY//\//\\/}'/g' $HOME_DIR/snapshots/coreos/user_data-template > $HOME_DIR/snapshots/coreos/user_data-$1
+
+if [ -f $HOME_DIR/snapshots/coreos/coreos-$1.vdi ]; then
+   VBoxManage closemedium disk /home/javendo/snapshots/coreos/coreos-02.vdi --delete
+fi
+
+VBoxManage clonehd $HOME_DIR/snapshots/coreos/coreos_production_1298.5.0.vdi $HOME_DIR/snapshots/coreos/coreos-$1.vdi
+VBoxManage modifyhd $HOME_DIR/snapshots/coreos/coreos-$1.vdi --resize 10240
+
+mkdir -p /tmp/new-drive/openstack/latest
+cp $HOME_DIR/snapshots/coreos/user_data-$1 /tmp/new-drive/openstack/latest/user_data
+mkisofs -R -V config-2 -o $HOME_DIR/snapshots/coreos/config-drive-$1.iso /tmp/new-drive
+rm -r /tmp/new-drive
